@@ -10,4 +10,3 @@ def get_price(currency):
     print(data[0]['id'])
     print(data[0]['current_price'])
 
-
