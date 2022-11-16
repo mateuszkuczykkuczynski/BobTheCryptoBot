@@ -2,7 +2,6 @@ from pycoingecko import CoinGeckoAPI
 from sqlitedict import SqliteDict
 import discord
 
-
 cg = CoinGeckoAPI()
 db = SqliteDict("Crypto.database")
 
@@ -16,6 +15,13 @@ def get_price(coin):
     else:
         return None
 
+def is_price_alert_int(prices_list):
+    prices_list_2 = [i for i in prices_list if i.isdigit()]
+    if prices_list == prices_list_2:
+        return True
+    else:
+        return False
+
 
 def coin_supported_by_bot(coin):
     if coin in db.keys():
@@ -26,31 +32,31 @@ def coin_supported_by_bot(coin):
 
 def trend(start_price, end_price):
     if start_price > end_price:
-        return decrease_alert(end_price) #return min value of db['notification'
+        return decrease_alert(end_price)  # return min value of db['notification'
     elif start_price < end_price:
-        return increase_alert(end_price) #return max value of db['notification'
+        return increase_alert(end_price)  # return max value of db['notification'
     else:
-        return [] #if start_price == end_price
+        return []  # if start_price == end_price
 
 
 def increase_alert(end_price, price_alerts):
-    # db['notification'] = []
+    noti = []
     for price in price_alerts:
         if end_price >= price:
-            db['notification'].append(price)
+            noti.append(price)
         else:
             continue
-    return db['notification']
+    return noti
 
 
 def decrease_alert(end_price, price_alerts):
-    # db['notification'] = []
+    noti = []
     for price in reversed(price_alerts):
         if end_price <= price:
-            db['notification'].append(price)
+            noti.append(price)
         else:
             continue
-    return db['notification']
+    return noti
 
 
 def list_check(list1, list2):
@@ -61,11 +67,11 @@ def list_check(list1, list2):
     return all(s1) and all(s2)
 
 
-def price_detector(coin, price_alerts):
+async def price_detector(coin, price_alerts):
     actual_price = get_price(coin)
 
     if db['hitPriceTarget'] not in range(min(actual_price, db['hitPriceTarget']),
-                                   max(actual_price, db['hitPriceTarget']) + 1) \
+                                         max(actual_price, db['hitPriceTarget']) + 1) \
             and min(price_alerts) <= actual_price <= max(price_alerts):
         db['hitPriceTarget'] = 0
     else:
@@ -75,15 +81,26 @@ def price_detector(coin, price_alerts):
                 # Increasing in value
                 if db['hitPriceTarget'] < actual_price:
                     if list_check(increase_alert(db['hitPriceTarget'], actual_price), db['notification']):
-                        print(f'Send increase notfication for: {list(set(increase_alert(db["hitPriceTarget"], actual_price)), set(db["notification"]))} ')
+                        for price_alert in list(
+                                set(increase_alert(db['hitPriceTarget'], actual_price)) - set(db['notification'])):
+                            await sendMessage(
+                                f'The price of {coin} has just passed {price_alert} USD. The current price is: {actual_price} USD.')
                     else:
-                        print(
-                            f'Send increase notfication for: {list(set(increase_alert(db["hitPriceTarget"], actual_price)))}')
+                        for price_alert in list(
+                                set(increase_alert(db['hitPriceTarget'], actual_price)) - set(db['notification'])):
+                            await sendMessage(f'The price of {coin} has just passed {price_alert} USD. The current '
+                                              f'price is: {actual_price} USD.')
                 elif db['hitPriceTarget'] >= actual_price:
                     if list_check(decrease_alert(db['hitPriceTarget'], actual_price, price_alerts), db['notification']):
-                        print(f'Send decrease notfication for: {list(set(db["notification"]) - set(decrease_alert(db["hitPriceTarget"], actual_price, price_alerts)))}')
+                        for price_alert in list(set(db['notification']) - set(
+                                decrease_alert(db['hitPriceTarget'], actual_price, price_alerts))):
+                            await sendMessage(
+                                f'The price of {coin} has just fallen below {price_alert} USD. The current price is: {actual_price} USD.')
                     else:
-                        print(f'Send decrease notfication for: {list(set(decrease_alert(db["hitPriceTarget"], actual_price, price_alerts)))}')
+                        for price_alert in list(set(db['notification']) - set(
+                                decrease_alert(db['hitPriceTarget'], actual_price, price_alerts))):
+                            await sendMessage(
+                                f'The price of {coin} has just fallen below {price_alert} USD. The current price is: {actual_price} USD.')
                 else:
                     pass
             if db['hitPriceTarget'] < actual_price:
@@ -101,6 +118,10 @@ def price_detector(coin, price_alerts):
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
+
+
+async def sendMessage(message):
+    await discord.utils.find(lambda h: h.name == 'ogólny', client.get_all_channels()).send(message)
 
 
 @client.event
@@ -132,7 +153,7 @@ async def on_message(message):
 
     if message.content.lower() == 'all':
         allpairs = list(db.items())
-        first_allpairs = allpairs[:len(allpairs)//2]
+        first_allpairs = allpairs[:len(allpairs) // 2]
         second_allpairs = allpairs[len(allpairs) // 2:]
         await message.channel.send(first_allpairs)
         await message.channel.send(second_allpairs)
@@ -140,5 +161,15 @@ async def on_message(message):
     if message.content.lower() == 'all_crypto':
         await message.channel.send(list(db.keys()))
 
-BOT_TOKEN = 'DISCORD_BOT'
+    if message.content.startswith() == '$set':
+        list_from_message = message.content.split(' ')
+        chosen_crypto = list_from_message[1]
+        user_price_alerts = []
+        for price in range(len(list_from_message)):
+            user_price_alerts.append(int(list_from_message[2 + price]))
+
+        if coin_supported_by_bot(chosen_crypto) and is_price_alert_int(user_price_alerts):
+
+
+BOT_TOKEN = 'DISCORD_TOKEN'
 client.run(BOT_TOKEN)
