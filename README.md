@@ -1,8 +1,14 @@
------ Discord bot that tracks up-to-date information regarding selected cryptocurrencies. 
-In addition to allowing the user to obtain basic information, the bot also allows 
-the user to set price notifications automatically sent via chat. -----
-Stack used: 
-- Python 
-- Docker
-- Poetry
-- unittest
+BobTheCryptoBot (Discord bot) 🚀
+
+Track real-time cryptocurrency information directly on Discord!
+
+Features 🌟
+
+📊 Live Cryptocurrency Data: Get up-to-date statistics for your favorite cryptocurrencies.
+🔔 Automatic Price Notifications: Set price alerts and receive notifications in chat when your set threshold is reached.
+Tech Stack 🛠️
+
+Language: Python
+Containerization: Docker
+Dependency Management: Poetry
+Testing: unittest
