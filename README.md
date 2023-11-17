@@ -12,3 +12,5 @@ Language: Python
 Containerization: Docker
 Dependency Management: Poetry
 Testing: unittest
+
+BobTheCryptoBot 2.0 is coming soon!
