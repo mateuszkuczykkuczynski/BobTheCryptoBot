@@ -14,3 +14,5 @@ Dependency Management: Poetry
 Testing: unittest
 
 BobTheCryptoBot 2.0 is coming soon!
+
+As i gained some experience i will refactor whole task (just for fun to see how much my code improves by time).
